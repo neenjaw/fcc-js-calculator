@@ -2,15 +2,15 @@
 Stack helper functions
 */
 
-export const peek = (arr) => arr[arr.length - 1]
+const peek = (arr) => arr[arr.length - 1]
 
-export const isEmpty = (arr) => arr.length === 0
+const isEmpty = (arr) => arr.length === 0
 
 /*
 helper function
 */
 
-export const pushToken = (arr, token) => {
+const pushToken = (arr, token) => {
   arr.push(token)
   return arr;
 }
@@ -19,7 +19,7 @@ export const pushToken = (arr, token) => {
 calculator constants
 */
 
-export const operators = {
+const operators = {
   PLUS: '+',
   MINUS: '-',
   MULTIPLY: '*',
@@ -30,7 +30,7 @@ export const operators = {
 calculator functions
 */
 
-export const isOperator  = (token) => {
+const isOperator  = (token) => {
   switch (token) {
     case operators.PLUS:
       return true
@@ -45,11 +45,11 @@ export const isOperator  = (token) => {
   }
 }
 
-export const tokenizer = (formula) => {
-  return formula.match(/\d+|\+|-|\/|\*|\(|\)/g)
+const tokenizer = (formula) => {
+  return formula.match(/\d+|\+|-|\/|\*|\(|\)/g) ?? []
 }
 
-export const convertNumericTokens = tokens => tokens.map(token => {
+const convertNumericTokens = tokens => tokens.map(token => {
   if (isNaN(Number(token))) {
     return token
   } else {
@@ -60,7 +60,7 @@ export const convertNumericTokens = tokens => tokens.map(token => {
 /*
 This takes an array of tokens, and looks for situations to apply a negative (-) symbol to a following number
 */
-export const attributeNegatives = (tokens) => {
+const attributeNegatives = (tokens) => {
   return tokens.reduce((accTokens, token, idx, tokens) => {
     // if current token is a number and the last accToken doesn't match the previous token it means
     // that a (-) was removed from the token list because it should be attributed to this number
@@ -85,21 +85,28 @@ export const attributeNegatives = (tokens) => {
   }, [])
 }
 
-export const applyOnlyLastOp = (tokens) => {
+const applyOnlyLastOp = (tokens) => {
   return tokens.filter((token, idx, tokens) => {
     return !(isOperator(token) && isOperator(tokens[idx + 1]))
   }, [])
 }
 
-export const validateTokenizedFormula = (tokens) => {
-  const leadingOperator = isOperator(tokens[0]) && tokens[0] !== operators.MINUS
-  const trailingOperator = isOperator(tokens[tokens.length - 1])
+const normalizeTokenizedFormula = (tokens) => {
+  let firstIndex = 0
+  let lastIndex = tokens.length - 1
 
-  if (leadingOperator || trailingOperator) {
-    return false
-  } else {
-    return tokens
+  while(isOperator(tokens[firstIndex])) {
+    firstIndex += 1
   }
+  while(isOperator(tokens[lastIndex])) {
+    lastIndex -= 1
+  }
+
+  const normalized = []
+  for (let index = firstIndex; index <= lastIndex; index++) {
+    normalized.push(tokens[index]);
+  }
+  return normalized
 }
 
 export const calculate = (formula) => {
@@ -107,7 +114,7 @@ export const calculate = (formula) => {
   const converted = convertNumericTokens(tokenized)
   const attributed = attributeNegatives(converted)
   const applied = applyOnlyLastOp(attributed)
-  const validated = validateTokenizedFormula(applied)
+  const normalized = normalizeTokenizedFormula(applied)
 
   // console.log({
   //   formula,
@@ -115,18 +122,18 @@ export const calculate = (formula) => {
   //   converted,
   //   attributed,
   //   applied,
-  //   validated
+  //   normalized
   // })
 
-  if (validated === false)
+  if (normalized === false)
     return 'ERR'
 
   // Implementation of dijkstra's shunting yard algorithm
   const values = []
   const ops = []
 
-  for (let idx = 0; idx < validated.length; idx++) {
-    const token = validated[idx];
+  for (let idx = 0; idx < normalized.length; idx++) {
+    const token = normalized[idx];
 
     // console.log(token)
 
@@ -201,4 +208,4 @@ const hasPrecedence = (opA, opB) => {
   return true
 }
 
-calculate(process.argv[2])
+console.log(calculate(process.argv[2]))
