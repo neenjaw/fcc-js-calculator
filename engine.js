@@ -19,7 +19,7 @@ const operations = {
 }
 
 const createEngine = () =>{
-  const terms = new BehaviorSubject([])
+  const terms = new Rx.BehaviorSubject([])
 
   const addTerm = (term) => {
     terms.next([...terms.getValue(), term])
@@ -80,5 +80,3 @@ const createEngine = () =>{
 }
 
 const termEngine = createEngine()
-
-console.log(termEngine.get())
