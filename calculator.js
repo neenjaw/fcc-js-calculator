@@ -1,4 +1,10 @@
 /*
+ *
+ * CALCULATOR
+ *
+ */
+
+/*
 Stack helper functions
 */
 
@@ -116,6 +122,9 @@ const calculate = (formula) => {
   const applied = applyOnlyLastOp(attributed)
   const normalized = normalizeTokenizedFormula(applied)
 
+  if (normalized.length === 0)
+    return 'NIL'
+
   if (normalized === false)
     return 'ERR'
 
@@ -123,44 +132,49 @@ const calculate = (formula) => {
   const values = []
   const ops = []
 
-  for (let idx = 0; idx < normalized.length; idx++) {
-    const token = normalized[idx];
+  try {
+    for (let idx = 0; idx < normalized.length; idx++) {
+      const token = normalized[idx];
 
-    if (typeof token === 'number') {
-      values.push(token)
-      continue
-    }
-
-    if (token === '(') {
-      ops.push(token)
-      continue
-    }
-
-    if (token === ')') {
-      while(peek(ops) !== '(') {
-        values.push(applyOp(ops.pop(), values.pop(), values.pop()))
-      }
-      ops.pop()
-      continue
-    }
-
-    if (isOperator(token)) {
-      while(!isEmpty(ops) && hasPrecedence(token, peek(ops))) {
-        values.push(applyOp(ops.pop(), values.pop(), values.pop()))
+      if (typeof token === 'number') {
+        values.push(token)
+        continue
       }
 
-      ops.push(token)
-      continue
+      if (token === '(') {
+        ops.push(token)
+        continue
+      }
+
+      if (token === ')') {
+        while(peek(ops) !== '(') {
+          values.push(applyOp(ops.pop(), values.pop(), values.pop()))
+        }
+        ops.pop()
+        continue
+      }
+
+      if (isOperator(token)) {
+        while(!isEmpty(ops) && hasPrecedence(token, peek(ops))) {
+          values.push(applyOp(ops.pop(), values.pop(), values.pop()))
+        }
+
+        ops.push(token)
+        continue
+      }
     }
+
+    while (!isEmpty(ops)) {
+      values.push(applyOp(ops.pop(), values.pop(), values.pop()));
+    }
+
+    const result = values.pop()
+
+    return result;
   }
-
-  while (!isEmpty(ops)) {
-    values.push(applyOp(ops.pop(), values.pop(), values.pop()));
+  catch(e) {
+    return "ERR"
   }
-
-  const result = values.pop()
-
-  return result;
 }
 
 const applyOp = (op, b, a) => {

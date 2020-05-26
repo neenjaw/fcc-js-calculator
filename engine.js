@@ -1,3 +1,9 @@
+/*
+ *
+ * TERM ENGINE SERVICE
+ *
+ */
+
 const operations = {
   ZERO: "0",
   ONE: "1",
@@ -9,36 +15,60 @@ const operations = {
   SEVEN: "7",
   EIGHT: "8",
   NINE: "9",
+  DECIMAL: ".",
   ADD: "+",
   SUBTRACT: "-",
   MULTIPLY: "*",
   DIVIDE: "/",
+  LBRACKET: "(",
+  RBRACKET: ")",
   EQUALS: "=",
   CLEAR: "clear",
-  BACK: "back"
+  BACK: "back",
 }
 
 const createEngine = () =>{
-  const terms = new rxjs.BehaviorSubject([])
+  const state = new rxjs.BehaviorSubject({
+    terms: [],
+    result: undefined
+  })
 
   const addTerm = (term) => {
-    terms.next([...terms.getValue(), term])
+    state.next({
+      terms: [...state.getValue().terms, term],
+      result: undefined
+    })
   }
 
   const removeTerm = () => {
-    const nextTerms = [...terms.getValue()]
+    const nextTerms = [...state.getValue().terms]
     nextTerms.pop()
-    terms.next(nextTerms)
+    state.next({
+      terms: nextTerms,
+      result: undefined
+    })
   }
 
   const clearTerms = () => {
-    terms.next([])
+    state.next({
+      terms: [],
+      result: undefined
+    })
+  }
+
+  const calculateTerms = () => {
+    const nextTerms = [...state.getValue().terms]
+    state.next({
+      terms: nextTerms,
+      result: calculate(nextTerms.join(""))
+    })
   }
 
   const input = (term) => {
     switch(term) {
       case operations.EQUALS:
-        return calculate(terms.getValue().join(""))
+        calculateTerms()
+        break
       case operations.BACK:
         removeTerm()
         break
@@ -56,27 +86,26 @@ const createEngine = () =>{
       case operations.EIGHT:
       case operations.NINE:
       case operations.ADD:
+      case operations.DECIMAL:
       case operations.SUBTRACT:
       case operations.MULTIPLY:
       case operations.DIVIDE:
+      case operations.LBRACKET:
+      case operations.RBRACKET:
         addTerm(term)
         break
     }
   }
-
-  const get = () => {
-    return [...terms.getValue()]
-  }
-
-  const show = () => {
-    return terms.getValue().join("")
-  }
-
   return {
+    state,
     input,
-    get,
-    show,
   }
 }
 
 const termEngine = createEngine()
+
+termEngine
+  .state
+  .subscribe(
+    state => console.log(state)
+  )
