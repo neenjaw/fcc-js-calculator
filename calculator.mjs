@@ -1,4 +1,10 @@
 /*
+ *
+ * CALCULATOR
+ *
+ */
+
+/*
 Stack helper functions
 */
 
@@ -46,7 +52,7 @@ const isOperator  = (token) => {
 }
 
 const tokenizer = (formula) => {
-  return formula.match(/\d+|\+|-|\/|\*|\(|\)/g) ?? []
+  return formula.match(/[\d\.]+|\+|-|\/|\*|\(|\)/g) ?? []
 }
 
 const convertNumericTokens = tokens => tokens.map(token => {
@@ -109,21 +115,15 @@ const normalizeTokenizedFormula = (tokens) => {
   return normalized
 }
 
-export const calculate = (formula) => {
+const calculate = (formula) => {
   const tokenized = tokenizer(formula)
   const converted = convertNumericTokens(tokenized)
   const attributed = attributeNegatives(converted)
   const applied = applyOnlyLastOp(attributed)
   const normalized = normalizeTokenizedFormula(applied)
 
-  // console.log({
-  //   formula,
-  //   tokenized,
-  //   converted,
-  //   attributed,
-  //   applied,
-  //   normalized
-  // })
+  if (normalized.length === 0)
+    return 'NIL'
 
   if (normalized === false)
     return 'ERR'
@@ -132,56 +132,49 @@ export const calculate = (formula) => {
   const values = []
   const ops = []
 
-  for (let idx = 0; idx < normalized.length; idx++) {
-    const token = normalized[idx];
+  try {
+    for (let idx = 0; idx < normalized.length; idx++) {
+      const token = normalized[idx];
 
-    // console.log(token)
-
-    if (typeof token === 'number') {
-      values.push(token)
-      // console.log({type: 'number', ops, values})
-      continue
-    }
-
-    if (token === '(') {
-      ops.push(token)
-      // console.log({type: 'open', ops, values})
-      continue
-    }
-
-    if (token === ')') {
-      while(peek(ops) !== '(') {
-        values.push(applyOp(ops.pop(), values.pop(), values.pop()))
-        // console.log({type: 'closing', ops, values})
-      }
-      ops.pop()
-      // console.log({type: 'closed', ops, values})
-      continue
-    }
-
-    if (isOperator(token)) {
-      while(!isEmpty(ops) && hasPrecedence(token, peek(ops))) {
-        values.push(applyOp(ops.pop(), values.pop(), values.pop()))
+      if (typeof token === 'number') {
+        values.push(token)
+        continue
       }
 
-      ops.push(token)
-      // console.log({type: 'op', ops, values})
-      continue
+      if (token === '(') {
+        ops.push(token)
+        continue
+      }
+
+      if (token === ')') {
+        while(peek(ops) !== '(') {
+          values.push(applyOp(ops.pop(), values.pop(), values.pop()))
+        }
+        ops.pop()
+        continue
+      }
+
+      if (isOperator(token)) {
+        while(!isEmpty(ops) && hasPrecedence(token, peek(ops))) {
+          values.push(applyOp(ops.pop(), values.pop(), values.pop()))
+        }
+
+        ops.push(token)
+        continue
+      }
     }
+
+    while (!isEmpty(ops)) {
+      values.push(applyOp(ops.pop(), values.pop(), values.pop()));
+    }
+
+    const result = values.pop()
+
+    return result;
   }
-  // console.log({type: 'finishing', ops, values})
-
-  while (!isEmpty(ops)) {
-    values.push(applyOp(ops.pop(), values.pop(), values.pop()));
+  catch(e) {
+    return "ERR"
   }
-  // console.log({type: 'finished', ops, values})
-
-  const result = values.pop()
-
-  // console.log({
-  //   ops, values, result
-  // })
-	return result;
 }
 
 const applyOp = (op, b, a) => {
@@ -207,5 +200,3 @@ const hasPrecedence = (opA, opB) => {
 
   return true
 }
-
-console.log(calculate(process.argv[2]))

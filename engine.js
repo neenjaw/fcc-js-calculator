@@ -1,4 +1,5 @@
 
+
 /*
  *
  * TERM ENGINE SERVICE
@@ -91,13 +92,25 @@ const createEngine = () =>{
     return state.getValue().result
   }
 
+  const clearResult = () => {
+    const terms = [...state.getValue().terms]
+    state.next({
+      terms,
+      result: undefined
+    })
+  }
+
   const input = (term) => {
     switch(term) {
       case operations.EQUALS:
         calculateTerms()
         break
       case operations.BACK:
-        removeTerm()
+        if (isResultCalculated()) {
+          clearResult()
+        } else {
+          removeTerm()
+        }
         break
       case operations.CLEAR:
         clearTerms()
@@ -144,9 +157,3 @@ const createEngine = () =>{
 }
 
 const termEngine = createEngine()
-
-termEngine
-  .state
-  .subscribe(
-    state => console.log(state)
-  )
