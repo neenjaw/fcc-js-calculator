@@ -12,7 +12,7 @@ class Button extends React.Component {
 
   handleClick() {
     const term = this.props.term
-    console.log(`Clicked ${term}`)
+    // console.log(`Clicked ${term}`)
     this.props.inputTerm(this.props.term)
   }
 
@@ -26,17 +26,27 @@ class Button extends React.Component {
 
 class Term extends React.Component {
   render() {
-    const digits = [...this.props.digits]
-    const lastDigits = []
-    while (digits.length > 0 && isNaN(digits[digits.length - 1]))
-      digits.pop()
-    while (digits.length > 0 && !isNaN(digits[digits.length - 1]))
-      lastDigits.push(digits.pop())
-    lastDigits.reverse()
+    const result = this.props.result
+    const terms = [...this.props.terms]
+    const lastTerm = terms[terms.length - 1]
 
-    const display = (lastDigits.length === 0)
-                    ? (<span className="blinky-prompt">0</span>)
-                    : lastDigits.join("")
+    const getLastNumber = (terms) => {
+      const digits = [...terms]
+      const last = []
+      while (digits.length > 0 && (!isNaN(digits[digits.length - 1]) || digits[digits.length - 1] === "."))
+        last.push(digits.pop())
+      return last.reverse().join("")
+    }
+
+    const display = (result)
+                    ? result
+                    : (terms.length === 0)
+                      ? "0"
+                      : (lastTerm !== "." && isNaN(Number(lastTerm)))
+                        ? terms[terms.length - 1]
+                        : getLastNumber(terms)
+
+    // console.log({display})
 
     return (
       <div id="display">{display}</div>
@@ -53,7 +63,7 @@ class Formula extends React.Component {
                     : `${displayTerms}=${this.props.result}`
 
     return (
-      <div>{display}</div>
+      <div className="formula">{display}</div>
     )
   }
 }
@@ -211,12 +221,12 @@ class Calculator extends React.Component {
       <div id="calculator">
         <div className="display">
           <Formula terms={this.state.terms} result={this.state.result} />
-          <Term digits={this.state.terms}/>
+          <Term terms={this.state.terms} result={this.state.result}/>
         </div>
         <div className="buttons">
           { buttons.map(props => (
             <Button
-              key={props.id}
+              key={props.classes}
               id={props.id}
               classes={props.classes}
               display={props.display}

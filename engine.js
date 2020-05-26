@@ -1,3 +1,4 @@
+
 /*
  *
  * TERM ENGINE SERVICE
@@ -64,6 +65,32 @@ const createEngine = () =>{
     })
   }
 
+  const startOfNumber = () => {
+    const terms = state.getValue().terms
+    const isBlank = terms.length === 0
+    const isNumberLast = !isNaN(Number(terms[terms.length - 1]))
+    const isDecimalLast = terms[terms.length - 1] === "."
+
+    console.log({isBlank, isNumberLast, isDecimalLast})
+
+    return isBlank || !(isNumberLast || isDecimalLast)
+  }
+
+  const decimalInNumber = () => {
+    const terms = [...state.getValue().terms]
+    while (terms.length > 0 && !isNaN(terms[terms.length - 1]))
+      terms.pop()
+    return terms[terms.length - 1] === "."
+  }
+
+  const isResultCalculated = () => {
+    return !!state.getValue().result
+  }
+
+  const getResult = () => {
+    return state.getValue().result
+  }
+
   const input = (term) => {
     switch(term) {
       case operations.EQUALS:
@@ -76,6 +103,25 @@ const createEngine = () =>{
         clearTerms()
         break
       case operations.ZERO:
+        if (startOfNumber()) return
+        addTerm(term)
+        break
+      case operations.DECIMAL:
+        if (decimalInNumber()) return
+        addTerm(term)
+        break
+      case operations.ADD:
+      case operations.SUBTRACT:
+      case operations.MULTIPLY:
+      case operations.DIVIDE:
+        if (isResultCalculated()) {
+          const result = getResult()
+          clearTerms()
+
+          console.log({state: state.getValue(), result})
+
+          addTerm(result)
+        }
       case operations.ONE:
       case operations.TWO:
       case operations.THREE:
@@ -85,11 +131,6 @@ const createEngine = () =>{
       case operations.SEVEN:
       case operations.EIGHT:
       case operations.NINE:
-      case operations.ADD:
-      case operations.DECIMAL:
-      case operations.SUBTRACT:
-      case operations.MULTIPLY:
-      case operations.DIVIDE:
       case operations.LBRACKET:
       case operations.RBRACKET:
         addTerm(term)

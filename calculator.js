@@ -52,7 +52,7 @@ const isOperator  = (token) => {
 }
 
 const tokenizer = (formula) => {
-  return formula.match(/\d+|\+|-|\/|\*|\(|\)/g) ?? []
+  return formula.match(/[\d\.]+|\+|-|\/|\*|\(|\)/g) ?? []
 }
 
 const convertNumericTokens = tokens => tokens.map(token => {
